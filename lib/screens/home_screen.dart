@@ -392,8 +392,6 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       }
       setState(() => cargando = false);
-
-    if (res['status'] == 'success') {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -595,7 +593,6 @@ class _HomeScreenState extends State<HomeScreen> {
               if (!mounted) return;
               setState(() => cargando = false);
 
-    if (res['status'] == 'success') {
               if (res['status'] == 'success') {
                 setState(() {
                   idJornada = null;
