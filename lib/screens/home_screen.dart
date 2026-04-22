@@ -518,17 +518,28 @@ class _HomeScreenState extends State<HomeScreen> {
     _resetAlertasConduccion();
   }
   void _registrarActividad(String texto, String tipo, Color color) async {
-    setState(() => cargando = true);
+    // UI OPTIMISTA: Cambiamos el estado visual inmediatamente
+    final antiguaActividad = actividadActual;
+    final antiguoInicio = _inicioActividad;
+    final antiguoInicioConduccion = _inicioConduccionActiva;
+
+    setState(() {
+      actividadActual = texto;
+      _inicioActividad = DateTime.now();
+      if (tipo == "conduccion") {
+        _inicioConduccionActiva = DateTime.now();
+      }
+      cargando = true;
+    });
+
     var res = await _api.registrarActividad(idJornada!, tipo);
 
     if (!mounted) return;
     setState(() => cargando = false);
 
     if (res['status'] == 'success') {
-      setState(() {
-        actividadActual = texto;
-        _inicioActividad = DateTime.now();
-      });
+      // Ya lo hemos actualizado optimísticamente, pero refrescamos el resumen
+      // del backend para sincronizar por si hubo desfases de milisegundos.
 
       // Al cambiar de actividad, refrescamos el resumen del backend para
       // asegurar que los contadores locales están sincronizados con la lógica legal.
@@ -536,8 +547,8 @@ class _HomeScreenState extends State<HomeScreen> {
       if (resResumen['status'] == 'success' && resResumen['data'] != null) {
         final data = resResumen['data'];
         setState(() {
-          _segundosConduccionActiva = (data['conduccion_activa'] ?? 0) * 60;
-          _segundosConduccionTotal = (data['conduccion_total'] ?? 0) * 60;
+          _segundosConduccionActiva = (data['conduccion_activa'] ?? 0);
+          _segundosConduccionTotal = (data['conduccion_total'] ?? 0);
           _huboPausaReciente = data['pausa_parte1_cumplida'] ?? false;
           
           _acumuladoConduccionActiva = _segundosConduccionActiva;
@@ -563,6 +574,11 @@ class _HomeScreenState extends State<HomeScreen> {
         SnackBar(content: Text("Iniciando: $texto"), backgroundColor: color),
       );
     } else {
+      setState(() {
+        actividadActual = antiguaActividad;
+        _inicioActividad = antiguoInicio;
+        _inicioConduccionActiva = antiguoInicioConduccion;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Error: ${res['message']}"),
