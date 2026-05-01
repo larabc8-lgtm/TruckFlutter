@@ -139,8 +139,8 @@ class _HomeScreenState extends State<HomeScreen> {
               final data = resResumen['data'];
               
               // Sincronizamos contadores con los valores procesados del backend
-              _segundosConduccionActiva = (data['conduccion_activa'] ?? 0) * 60;
-              _segundosConduccionTotal = (data['conduccion_total'] ?? 0) * 60;
+              _segundosConduccionActiva = (data['conduccion_activa'] ?? 0);
+              _segundosConduccionTotal = (data['conduccion_total'] ?? 0);
               _huboPausaReciente = data['pausa_parte1_cumplida'] ?? false;
               
               _acumuladoConduccionActiva = _segundosConduccionActiva;
@@ -148,7 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // Sincronizar actividad actual y tiempos
               String backendActividad = (data['actividad_actual'] ?? "").toString().toLowerCase();
-              int segundosEnActividad = (data['tiempo_actual'] ?? 0) * 60;
+              int segundosEnActividad = (data['tiempo_actual'] ?? 0);
 
               if (backendActividad == "conduccion") {
                 actividadActual = "CONDUCIR";

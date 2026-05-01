@@ -6,15 +6,15 @@ import 'package:http/http.dart' as http;
 class ApiService {
   // Autodetección del emulador / dispositivo:
   static String get baseUrl {
-      return "https://trucktime-production.up.railway.app";
-/*
+      //return "https://trucktime-production.up.railway.app";
+
     if (kIsWeb) {
       return "http://localhost/trucktime";
     } else if (Platform.isAndroid) {
       return "http://10.0.2.2/trucktime"; // Emulador Android
     } else {
       return "http://127.0.0.1/trucktime"; // Simulador iOS / macOS
-    }*/
+    }
   }
 
   // Headers comunes para todas las peticiones JSON
