@@ -2,6 +2,17 @@
 
 Aplicación móvil desarrollada como Proyecto Final del Grado Superior en Desarrollo de Aplicaciones Multiplataforma (DAM). Gestiona los tiempos de conducción, descanso y otros trabajos de los camioneros profesionales, cumpliendo con el **Reglamento CE 561/2006**.
 
+## Capturas
+
+### Login
+![Login](screenshots/login.png)
+
+### Pantalla principal - Conducción activa
+![Conducción](screenshots/conduccion.png)
+
+### Historial semanal
+![Historial](screenshots/historial.png)
+
 ## Funcionalidades
 
 - **Control de jornada**: Abrir y cerrar jornadas de trabajo con registro automático.
