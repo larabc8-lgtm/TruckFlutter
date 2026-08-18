@@ -2,12 +2,9 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 
 // Widget que muestra el estado del descanso semanal
-// y permite al conductor marcarlo manualmente.
-// Incluir en HomeScreen cuando la jornada NO está activa.
 class DescansoSemanalWidget extends StatefulWidget {
   final int idUsuario;
-  final int? idUltimoRegistro; // id del último registro de descanso
-
+  final int? idUltimoRegistro;
   const DescansoSemanalWidget({
     required this.idUsuario,
     this.idUltimoRegistro,
@@ -104,7 +101,7 @@ class _DescansoSemanalWidgetState extends State<DescansoSemanalWidget> {
           backgroundColor: Colors.green,
         ),
       );
-      _cargarEstado(); // Recargar estado
+      _cargarEstado();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -146,7 +143,6 @@ class _DescansoSemanalWidgetState extends State<DescansoSemanalWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Cabecera
           Row(
             children: [
               Icon(_iconoAlerta, color: _colorAlerta, size: 22),

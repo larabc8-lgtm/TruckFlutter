@@ -7,6 +7,7 @@ import 'historial_screen.dart';
 import 'descanso_semanal_widget.dart';
 import 'notificaciones_screen.dart';
 import '../services/notificacion_storage_service.dart';
+
 class HomeScreen extends StatefulWidget {
   final Map<String, dynamic> userData;
   final int? jornadaActivaId;
@@ -52,11 +53,12 @@ class _HomeScreenState extends State<HomeScreen> {
   int _descansosRestantes = 3;
   // Alertas y notificaciones
   int _alertasNoLeidas = 0;
-  // Tracking de alertas enviadas (para no duplicar)
+  // Tracking de alertas enviadas
   bool _alerta4hEnviada = false;
   bool _alerta4h15Enviada = false;
   bool _alerta4h30Enviada = false;
-  int? _idUltimoRegistro; // añadir junto a las otras variables de estado
+  int? _idUltimoRegistro;
+
   @override
   void initState() {
     super.initState();
@@ -67,13 +69,14 @@ class _HomeScreenState extends State<HomeScreen> {
     _cargarJornadaActiva();
     _cargarAlertas();
   }
+
   void _cargarAlertas() async {
     final idUsuario = int.parse(widget.userData['id_usuario'].toString());
     var res = await _api.getAlertasNoLeidas(idUsuario);
     if (!mounted) return;
     
-    if (res['status'] == 'success' && res['data'] != null) {
-      List<dynamic> backendAlertas = res['data'] as List<dynamic>;
+    if (res['status'] == 'success' && res['data'] != null && res['data']['alertas'] != null) {
+      List<dynamic> backendAlertas = res['data']['alertas'] as List<dynamic>;
       for (var a in backendAlertas) {
         String tipo = 'info';
         String tipoAlertaStr = a['tipo_alerta']?.toString().toLowerCase() ?? '';
@@ -125,7 +128,6 @@ class _HomeScreenState extends State<HomeScreen> {
           final datosJornada = res['data'];
           final jornId = datosJornada['id_jornada'] as int;
 
-          // Obtenemos el resumen calculado directamente en backend
           final resResumen = await _api.getMinutosConduccion(jornId);
 
           setState(() {
@@ -153,11 +155,9 @@ class _HomeScreenState extends State<HomeScreen> {
               if (backendActividad == "conduccion") {
                 actividadActual = "CONDUCIR";
                 _inicioConduccionActiva = DateTime.now();
-                // Al ser el bloque actual, el acumulado ya incluye el tiempo pasado.
               } else if (backendActividad == "pausa" || backendActividad == "descanso") {
                 actividadActual = "PAUSA / DESCANSO";
                 _segundosDescanso = segundosEnActividad;
-                // Ajustamos el inicio de actividad para que el timer local coincida
                 _inicioActividad = DateTime.now().subtract(Duration(seconds: segundosEnActividad));
               } else if (backendActividad == "otros_trabajos") {
                 actividadActual = "OTROS TRABAJOS";
@@ -237,22 +237,21 @@ class _HomeScreenState extends State<HomeScreen> {
         }
         _segundosDescanso++;
         _tiempoDescanso = _formatearSegundos(_segundosDescanso);
-        // LÓGICA DE RESET CORREGIDA
-        if (_segundosDescanso >= 2700) {
+        if (_segundosDescanso >= 2670) {
           // Caso 1: Pausa única de 45 min
           _segundosConduccionActiva = 0;
           _acumuladoConduccionActiva = 0;
           _tiempoConduccionActiva = "00:00:00";
           _huboPausaReciente = false;
           debugPrint('RESET: Pausa 45min');
-        } else if (_segundosDescanso >= 1800 && _huboPausaReciente) {
+        } else if (_segundosDescanso >= 1770 && _huboPausaReciente) {
           // Caso 2: Segunda parte de pausa fraccionada (30 min habiendo hecho 15 previos)
           _segundosConduccionActiva = 0;
           _acumuladoConduccionActiva = 0;
           _tiempoConduccionActiva = "00:00:00";
           _huboPausaReciente = false;
           debugPrint('RESET: Pausa 30min con pausa previa');
-        } else if (_segundosDescanso >= 900) {
+        } else if (_segundosDescanso >= 870) {
           // Si llegamos a 15 min, marcamos que esta pausa sirve como primera fracción
           _huboPausaReciente = true;
           debugPrint('Pausa 15min, _huboPausaReciente=true');
@@ -338,15 +337,15 @@ class _HomeScreenState extends State<HomeScreen> {
     return Colors.blue;
   }
   Color _getColorDescanso() {
-    if (_segundosDescanso >= 2700) return Colors.green;
-    if (_segundosDescanso >= 900) return Colors.orange;
+    if (_segundosDescanso >= 2670) return Colors.green;
+    if (_segundosDescanso >= 870) return Colors.orange;
     return Colors.amber;
   }
   String _getMensajeDescanso() {
-    if (_segundosDescanso >= 2700) {
+    if (_segundosDescanso >= 2670) {
       return "✅ ¡Descanso completado!\nPuedes conducir 4h30min más";
-    } else if (_segundosDescanso >= 900) {
-      final faltan = 2700 - _segundosDescanso;
+    } else if (_segundosDescanso >= 870) {
+      final faltan = 2670 - _segundosDescanso;
       final mins = faltan ~/ 60;
       return "✅ Primera fracción: 15min ✅\n⚠️ Faltan ${mins}min para descanso válido";
     } else {
@@ -360,7 +359,6 @@ class _HomeScreenState extends State<HomeScreen> {
     int userId = int.parse(widget.userData['id_usuario'].toString());
     var res = await _api.abrirJornada(userId);
     if (!mounted) return;
-    // La respuesta viene en res['data']
     final data = res['data'] as Map<String, dynamic>?;
 
     if (res['status'] == 'success' && data != null) {
@@ -407,7 +405,6 @@ class _HomeScreenState extends State<HomeScreen> {
       Map<String, dynamic>? descanso,
       ) {
     final tipo = descanso?['tipo'] ?? '';
-    // Icono y color según el tipo de descanso
     Color color;
     IconData icono;
     String titulo;
@@ -518,7 +515,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _resetAlertasConduccion();
   }
   void _registrarActividad(String texto, String tipo, Color color) async {
-    // UI OPTIMISTA: Cambiamos el estado visual inmediatamente
     final antiguaActividad = actividadActual;
     final antiguoInicio = _inicioActividad;
     final antiguoInicioConduccion = _inicioConduccionActiva;
@@ -538,11 +534,6 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => cargando = false);
 
     if (res['status'] == 'success') {
-      // Ya lo hemos actualizado optimísticamente, pero refrescamos el resumen
-      // del backend para sincronizar por si hubo desfases de milisegundos.
-
-      // Al cambiar de actividad, refrescamos el resumen del backend para
-      // asegurar que los contadores locales están sincronizados con la lógica legal.
       final resResumen = await _api.getMinutosConduccion(idJornada!);
       if (resResumen['status'] == 'success' && resResumen['data'] != null) {
         final data = resResumen['data'];
@@ -560,10 +551,9 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       setState(() {
-        // Resetear alertas si corresponde
         if (tipo == 'pausa' || tipo == 'descanso') {
           _resetAlertasConduccion();
-          _segundosDescanso = 0; // empezamos a contar la nueva pausa
+          _segundosDescanso = 0;
         }
 
         if (tipo == "conduccion") {
@@ -973,8 +963,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             const SizedBox(height: 20),
 
-            // Aquí van los botones de iniciar jornada y ver historial
-            const SizedBox(height: 40), // Espacio entre el estado legal y los botones
+            const SizedBox(height: 40),
             Icon(
               Icons.play_circle_outline,
               size: 80,

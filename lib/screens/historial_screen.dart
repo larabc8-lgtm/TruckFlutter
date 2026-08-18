@@ -17,7 +17,7 @@ class _HistorialScreenState extends State<HistorialScreen>
   List<dynamic> _jornadas = [];
   final Map<int, List<dynamic>> _registrosPorJornada = {};
   bool _cargando = true;
-  final Map<int, bool> _cargandoRegistrosJornada = {}; // NUEVO: para trackear carga individual
+  final Map<int, bool> _cargandoRegistrosJornada = {};
   final Map<String, bool> _expandido = {};
 
   int _mesSeleccionado = DateTime.now().month;
@@ -61,8 +61,7 @@ class _HistorialScreenState extends State<HistorialScreen>
             final data = resResumen['data'];
             // Sobreescribimos los campos del historial con el cálculo real
             jornadas.first['duracion_conduccion_total'] = data['conduccion_total'];
-            jornadas.first['duracion_descanso_total']   = 0; // Se calcula al cerrar
-            // La duración de la jornada ya se calcula con COALESCE(NOW()) en el backend
+            jornadas.first['duracion_descanso_total']   = 0;
           }
         }
 
@@ -86,9 +85,8 @@ class _HistorialScreenState extends State<HistorialScreen>
     }
   }
 
-  // NUEVO MÉTODO: Carga los registros de una jornada solo cuando se necesita
+  //Carga los registros de una jornada solo cuando se necesita
   Future<void> _cargarDetalleJornada(int idJornada) async {
-    // Si ya los tenemos o se están cargando, no hacemos nada
     if (_registrosPorJornada.containsKey(idJornada) || 
         (_cargandoRegistrosJornada[idJornada] ?? false)) {
       return;
@@ -341,7 +339,7 @@ class _HistorialScreenState extends State<HistorialScreen>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              _nombreDia(fecha.weekday),
+                              "${_nombreDia(fecha.weekday)}, ${fecha.day}",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: tieneDatos
@@ -380,7 +378,6 @@ class _HistorialScreenState extends State<HistorialScreen>
                       ],
                     ],
                   ),
-                  // Mostrar descanso del día siguiente (que pertenece a este día)
                   if (descansoDelSiguiente != null &&
                       descansoDelSiguiente.isNotEmpty) ...[
                     const SizedBox(height: 8),
@@ -438,8 +435,7 @@ class _HistorialScreenState extends State<HistorialScreen>
   Widget _detalleJornada(Map<String, dynamic> jornada) {
     final idJornada = jornada['id_jornada'] as int;
     final esActiva = jornada['estado'] == 'activa';
-    
-    // Si se está cargando el detalle
+
     if (_cargandoRegistrosJornada[idJornada] ?? false) {
       return const Padding(
         padding: EdgeInsets.all(20),

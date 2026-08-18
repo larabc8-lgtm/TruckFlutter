@@ -97,58 +97,59 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Dentro del build, antes del primer TextField
-            const Icon(Icons.local_shipping, size: 80, color: Colors.blue),
-            const SizedBox(height: 10),
-            const Text(
-              "Bienvenido a TruckTime",
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 30),
-            TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(
-                labelText: "Email",
-                border: OutlineInputBorder(),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.local_shipping, size: 80, color: Colors.blue),
+              const SizedBox(height: 10),
+              const Text(
+                "Bienvenido a TruckTime",
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _passwordController,
-              decoration: const InputDecoration(
-                labelText: "Contraseña",
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true,
-            ),
-            const SizedBox(height: 30),
-            _cargando
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
-                    onPressed: _intentarLogin,
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 50),
-                    ),
-                    child: const Text("Iniciar Sesión"),
-                  ),
-            const SizedBox(height: 16),
-            TextButton(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      RegisterScreen(onThemeToggle: widget.onThemeToggle),
+              const SizedBox(height: 30),
+              TextField(
+                controller: _emailController,
+                decoration: const InputDecoration(
+                  labelText: "Email",
+                  border: OutlineInputBorder(),
                 ),
+                keyboardType: TextInputType.emailAddress,
               ),
-              child: const Text("¿No tienes cuenta? Regístrate"),
-            ),
-          ],
+              const SizedBox(height: 20),
+              TextField(
+                controller: _passwordController,
+                decoration: const InputDecoration(
+                  labelText: "Contraseña",
+                  border: OutlineInputBorder(),
+                ),
+                obscureText: true,
+              ),
+              const SizedBox(height: 30),
+              _cargando
+                  ? const CircularProgressIndicator()
+                  : ElevatedButton(
+                      onPressed: _intentarLogin,
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 50),
+                      ),
+                      child: const Text("Iniciar Sesión"),
+                    ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        RegisterScreen(onThemeToggle: widget.onThemeToggle),
+                  ),
+                ),
+                child: const Text("¿No tienes cuenta? Regístrate"),
+              ),
+            ],
+          ),
         ),
       ),
     );

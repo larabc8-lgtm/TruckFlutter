@@ -17,7 +17,15 @@ class NotificacionService {
     const androidSettings = AndroidInitializationSettings(
       '@mipmap/launcher_icon',
     );
-    const initSettings = InitializationSettings(android: androidSettings);
+    const darwinSettings = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
+    const initSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: darwinSettings,
+    );
 
     await _notificaciones.initialize(
       initSettings,
@@ -28,16 +36,29 @@ class NotificacionService {
   }
 
   void _onNotificationResponse(NotificationResponse response) {
-    // Manejar cuando el usuario toca la notificación
   }
 
   Future<void> solicitarPermisos() async {
+    // Permisos para Android
     final android = _notificaciones
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
         >();
     if (android != null) {
       await android.requestNotificationsPermission();
+    }
+
+    // Permisos para iOS/Darwin
+    final ios = _notificaciones
+        .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin
+        >();
+    if (ios != null) {
+      await ios.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
     }
   }
 
@@ -58,11 +79,18 @@ class NotificacionService {
       enableVibration: true,
     );
 
-    const details = NotificationDetails(android: androidDetails);
+    const darwinDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: darwinDetails,
+    );
 
     await _notificaciones.show(id, titulo, cuerpo, details);
-
-    // GUARDAR EN ALMACENAMIENTO LOCAL
     String tipo = 'info';
     final tituloLower = titulo.toLowerCase();
     final cuerpoLower = cuerpo.toLowerCase();

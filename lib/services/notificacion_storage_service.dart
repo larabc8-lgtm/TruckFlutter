@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Modelo de una notificación almacenada localmente.
+// Modelo de una notificación almacenada localmente.
 class NotificacionLocal {
   final String id;
   final String titulo;
@@ -40,8 +40,7 @@ class NotificacionLocal {
   }
 }
 
-/// Servicio que persiste las notificaciones localmente usando SharedPreferences.
-/// Patrón Singleton para acceder desde cualquier parte de la app.
+// Servicio que persiste las notificaciones localmente usando SharedPreferences.
 class NotificacionStorageService {
   static final NotificacionStorageService _instance =
       NotificacionStorageService._internal();
@@ -49,35 +48,47 @@ class NotificacionStorageService {
   NotificacionStorageService._internal();
 
   static const String _key = 'notificaciones_locales';
-  static const int _maxNotificaciones = 100; // Límite para no saturar storage
+  static const int _maxNotificaciones = 100;
 
   List<NotificacionLocal> _cache = [];
   bool _cargado = false;
 
-  /// Carga las notificaciones desde SharedPreferences (se llama una vez).
+  // Carga las notificaciones desde SharedPreferences (se llama una vez).
   Future<void> cargar() async {
     if (_cargado) return;
     final prefs = await SharedPreferences.getInstance();
     final data = prefs.getString(_key);
     if (data != null) {
-      final List<dynamic> lista = json.decode(data);
-      _cache = lista
-          .map((e) => NotificacionLocal.fromJson(e as Map<String, dynamic>))
-          .toList();
-      // Ordenar por fecha descendente (más recientes primero)
-      _cache.sort((a, b) => b.fecha.compareTo(a.fecha));
+      try {
+        final List<dynamic> lista = json.decode(data);
+        _cache = [];
+        for (var e in lista) {
+          try {
+            if (e is Map) {
+              _cache.add(NotificacionLocal.fromJson(Map<String, dynamic>.from(e)));
+            }
+          } catch (err) {
+            print("Error al parsear notificación individual: $err");
+          }
+        }
+        // Ordenar por fecha descendente (más recientes primero)
+        _cache.sort((a, b) => b.fecha.compareTo(a.fecha));
+      } catch (e) {
+        print("Error al decodificar notificaciones de SharedPreferences: $e");
+        _cache = [];
+      }
     }
     _cargado = true;
   }
 
-  /// Guarda el estado actual en SharedPreferences.
+  //Guarda el estado actual en SharedPreferences.
   Future<void> _guardar() async {
     final prefs = await SharedPreferences.getInstance();
     final data = json.encode(_cache.map((n) => n.toJson()).toList());
     await prefs.setString(_key, data);
   }
 
-  /// Añade una nueva notificación y la persiste.
+  //Añade una nueva notificación y la persiste.
   Future<void> agregar({
     required String titulo,
     required String cuerpo,
@@ -91,35 +102,32 @@ class NotificacionStorageService {
       tipo: tipo,
       fecha: DateTime.now(),
     );
-    _cache.insert(0, notif); // Insertar al principio (más reciente)
-
-    // Limitar la cantidad total
+    _cache.insert(0, notif);
     if (_cache.length > _maxNotificaciones) {
       _cache = _cache.sublist(0, _maxNotificaciones);
     }
-
     await _guardar();
   }
 
-  /// Devuelve todas las notificaciones (más recientes primero).
+  //Devuelve todas las notificaciones
   Future<List<NotificacionLocal>> obtenerTodas() async {
     await cargar();
     return List.unmodifiable(_cache);
   }
 
-  /// Devuelve solo las no leídas.
+  // Devuelve solo las no leídas.
   Future<List<NotificacionLocal>> obtenerNoLeidas() async {
     await cargar();
     return _cache.where((n) => !n.leida).toList();
   }
 
-  /// Cantidad de no leídas.
+  // Cantidad de no leídas.
   Future<int> contarNoLeidas() async {
     await cargar();
     return _cache.where((n) => !n.leida).length;
   }
 
-  /// Marca una notificación como leída.
+  //Marca una notificación como leída.
   Future<void> marcarLeida(String id) async {
     await cargar();
     final idx = _cache.indexWhere((n) => n.id == id);
@@ -129,7 +137,7 @@ class NotificacionStorageService {
     }
   }
 
-  /// Marca todas como leídas.
+  //Marca todas como leídas.
   Future<void> marcarTodasLeidas() async {
     await cargar();
     for (final n in _cache) {
@@ -138,14 +146,14 @@ class NotificacionStorageService {
     await _guardar();
   }
 
-  /// Elimina una notificación por ID.
+  //Elimina una notificación por ID.
   Future<void> eliminar(String id) async {
     await cargar();
     _cache.removeWhere((n) => n.id == id);
     await _guardar();
   }
 
-  /// Elimina todas las notificaciones.
+  //Elimina todas las notificaciones.
   Future<void> eliminarTodas() async {
     _cache.clear();
     await _guardar();

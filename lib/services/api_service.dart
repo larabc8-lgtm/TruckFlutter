@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  // Autodetección del emulador / dispositivo:
   static String get baseUrl {
       //return "https://trucktime-production.up.railway.app";
 
@@ -99,7 +98,6 @@ class ApiService {
         'id_jornada': idJornada,
         'tipo_actividad': tipo,
       };
-      // Solo añadimos coordenadas si vienen informadas
       if (latitud != null) bodyData['latitud'] = latitud;
       if (longitud != null) bodyData['longitud'] = longitud;
 
@@ -134,7 +132,7 @@ class ApiService {
     } catch (e) { return _errorConexion(e); }
   }
 
-  // --- RESUMEN SEMANAL Y MENSUAL REAL (basado en descanso largo CE 561/2006) ---
+  // --- RESUMEN SEMANAL Y MENSUAL ---
   Future<Map<String, dynamic>> getResumenConduccion(int idUsuario) async {
     try {
       final response = await http.get(
@@ -156,7 +154,7 @@ class ApiService {
     } catch (e) { return _errorConexion(e); }
   }
 
-  // --- COMPROBAR ALERTAS (llama a la normativa CE 561/2006) ---
+  // --- COMPROBAR ALERTAS ---
   Future<Map<String, dynamic>> comprobarAlertas(int idJornada) async {
     try {
       final response = await http.post(
